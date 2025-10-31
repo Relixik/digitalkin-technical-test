@@ -1,0 +1,40 @@
+syntax = "proto3";
+
+package digitalkin;
+
+message Agent {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string createdAt = 4;
+  string updatedAt = 5;
+}
+
+// Messages pour les agents
+message ListAgentsResponse {
+  repeated Agent agents = 1;
+  string error = 2;
+}
+
+message AgentResponse {
+  Agent agent = 1;
+  string error = 2;
+}
+
+message DeleteAgentResponse {
+  bool success = 1;
+  string error = 2;
+}
+
+// Messages pour les conversations
+message ConversationResponse {
+  string conversationId = 1;
+  string message = 2;
+  string error = 3;
+}
+
+message MessageResponse {
+  string conversationId = 1;
+  string message = 2;
+  string error = 3;
+}

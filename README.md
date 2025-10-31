@@ -70,10 +70,17 @@ L'API sera accessible sur `http://localhost:3000`
 ```
 src/
 ├── config/           # Configuration (env, logger)
+├── grpc/             # Services gRPC et modèles
+│   ├── models/       # Types TypeScript pour gRPC
+│   └── services/     # Implémentations des services gRPC
 ├── models/           # Modèles TypeScript et validation Joi
 ├── routes/           # Routes Express
 ├── services/         # Logique métier et accès données
 └── index.ts          # Point d'entrée de l'application
+proto/                # Fichiers Protocol Buffers (.proto)
+├── digitalkin.proto
+├── digitalkin.request.proto
+└── digitalkin.response.proto
 ```
 
 ## 📚 Documentation API
@@ -81,6 +88,10 @@ src/
 ### REST API (Port 3000)
 
 La documentation complète de l'API REST est disponible dans le fichier [API_DOCUMENTATION.md](./API_DOCUMENTATION.md).
+
+### gRPC API (Port 3002)
+
+La documentation et guide de test gRPC avec Postman est disponible dans le fichier [GRPC_POSTMAN_GUIDE.md](./GRPC_POSTMAN_GUIDE.md).
 
 ### Endpoints principaux REST
 
@@ -91,6 +102,13 @@ La documentation complète de l'API REST est disponible dans le fichier [API_DOC
 - **DELETE** `/agents/:id` - Supprime un agent
 - **POST** `/conversations` - Démarre une nouvelle conversation
 - **POST** `/conversations/:id/messages` - Continue une conversation
+
+### Services gRPC disponibles
+
+- **AgentService** : Gestion CRUD des agents
+  - `ListAgents`, `CreateAgent`, `GetAgent`, `UpdateAgent`, `DeleteAgent`
+- **ConversationService** : Gestion des conversations
+  - `StartConversation`, `SendMessage`
 
 ## 🧪 Test rapide
 

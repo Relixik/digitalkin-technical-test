@@ -1,7 +1,8 @@
-# API Documentation - REST
+# API Documentation - REST et gRPC
 
 Ce projet expose deux types d'APIs :
 - **REST API** sur le port 3000 (HTTP)
+- **gRPC API** sur le port 3002 (TCP)
 
 ## REST API
 
@@ -200,3 +201,125 @@ curl -X POST http://localhost:3000/conversations/conversation_id_here/messages \
     "message": "Pouvez-vous m'\''aider avec un problème ?"
   }'
 ```
+
+---
+
+## gRPC API
+
+### Base URL
+
+```
+localhost:3002
+```
+
+### Protocol Buffers
+
+Le service utilise les fichiers `.proto` situés dans le dossier `proto/` :
+
+- `digitalkin.proto` - Définitions des services
+- `digitalkin.request.proto` - Messages de requête
+- `digitalkin.response.proto` - Messages de réponse
+
+### Services Disponibles
+
+#### AgentService
+
+**Méthodes disponibles :**
+
+##### ListAgents
+- **Request:** `ListAgentsRequest` (vide)
+- **Response:** `ListAgentsResponse`
+
+```protobuf
+message ListAgentsResponse {
+  repeated Agent agents = 1;
+  string error = 2;
+}
+```
+
+##### CreateAgent
+- **Request:** `CreateAgentRequest`
+- **Response:** `AgentResponse`
+
+```protobuf
+message CreateAgentRequest {
+  string name = 1;
+  string description = 2;
+}
+```
+
+##### GetAgent
+- **Request:** `GetAgentRequest`
+- **Response:** `AgentResponse`
+
+```protobuf
+message GetAgentRequest {
+  string id = 1;
+}
+```
+
+##### UpdateAgent
+- **Request:** `UpdateAgentRequest`
+- **Response:** `AgentResponse`
+
+```protobuf
+message UpdateAgentRequest {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+}
+```
+
+##### DeleteAgent
+- **Request:** `DeleteAgentRequest`
+- **Response:** `DeleteAgentResponse`
+
+```protobuf
+message DeleteAgentRequest {
+  string id = 1;
+}
+
+message DeleteAgentResponse {
+  bool success = 1;
+  string error = 2;
+}
+```
+
+#### ConversationService
+
+**Méthodes prévues :**
+
+##### StartConversation
+- **Request:** `StartConversationRequest`
+- **Response:** `ConversationResponse`
+
+##### SendMessage
+- **Request:** `SendMessageRequest`
+- **Response:** `MessageResponse`
+
+### Format des Messages
+
+#### Agent
+
+```protobuf
+message Agent {
+  string id = 1;
+  string name = 2;
+  string description = 3;
+  string createdAt = 4;
+  string updatedAt = 5;
+}
+```
+
+#### AgentResponse
+
+```protobuf
+message AgentResponse {
+  Agent agent = 1;
+  string error = 2;
+}
+```
+
+### Exemples d'utilisation
+
+Voir le fichier `GRPC_POSTMAN_GUIDE.md` pour des exemples détaillés avec Postman.

@@ -6,6 +6,7 @@ export const env = {
     VERSION: process.env.VERSION || "1.0.0",
     NODE_ENV: process.env.NODE_ENV || "development",
     PORT: parseInt(process.env.PORT || "3000", 10),
+    PORT_GRPC: parseInt(process.env.PORT_GRPC || "3002", 10),
     LOG_LEVEL: process.env.LOG_LEVEL || "debug",
 
     // Base de données
@@ -18,7 +19,6 @@ export const env = {
     // OPENAI
     OPENAI_MODEL: process.env.OPENAI_MODEL || "gpt-5",
     OPENAI_API_KEY: process.env.JWT_SECRET || "your-secret-key", // automatically read from environment by OpenAI library
-
 } as const;
 
 export default env;

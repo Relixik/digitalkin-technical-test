@@ -5,6 +5,7 @@ import logger from "./config/logger";
 import routes from "./routes";
 import databaseService from "./services/database.service";
 import { jsonErrorHandler } from "./middleware/errorHandler";
+import { startGrpcServer } from "./grpc";
 
 const app: Express = express();
 
@@ -23,6 +24,8 @@ async function startServer() {
                 logger.info("SERVER", `API is running on port ${env.PORT}`);
             });
 
+        // Démarrage du serveur gRPC
+        startGrpcServer();
     } catch (error) {
         logger.error("SERVER", `Failed to start: ${error}`, {
             message: error instanceof Error ? error.message : error,

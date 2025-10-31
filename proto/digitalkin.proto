@@ -1,0 +1,21 @@
+syntax = "proto3";
+
+package digitalkin;
+
+import "digitalkin.request.proto";
+import "digitalkin.response.proto";
+
+// Service pour la gestion des agents
+service AgentService {
+  rpc ListAgents(ListAgentsRequest) returns (ListAgentsResponse);
+  rpc CreateAgent(CreateAgentRequest) returns (AgentResponse);
+  rpc GetAgent(GetAgentRequest) returns (AgentResponse);
+  rpc UpdateAgent(UpdateAgentRequest) returns (AgentResponse);
+  rpc DeleteAgent(DeleteAgentRequest) returns (DeleteAgentResponse);
+}
+
+// Service pour la gestion des conversations
+service ConversationService {
+  rpc StartConversation(StartConversationRequest) returns (ConversationResponse);
+  rpc SendMessage(SendMessageRequest) returns (MessageResponse);
+}
