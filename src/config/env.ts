@@ -18,7 +18,7 @@ export const env = {
 
     // OPENAI
     OPENAI_MODEL: process.env.OPENAI_MODEL || "gpt-5",
-    OPENAI_API_KEY: process.env.JWT_SECRET || "your-secret-key", // automatically read from environment by OpenAI library
+    OPENAI_API_KEY: process.env.OPENAI_API_KEY || "", // automatically read from environment by OpenAI library
 } as const;
 
 export default env;

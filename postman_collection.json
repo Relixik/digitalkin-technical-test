@@ -44,7 +44,12 @@
                   "",
                   "pm.test(\"Response has correct name\", function () {",
                   "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.name).to.eql('Assistant Test');",
+                  "    pm.expect(jsonData.name).to.eql('Assistant Echo');",
+                  "});",
+                  "",
+                  "pm.test(\"Response has correct type\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.type).to.eql('echo');",
                   "});"
                 ]
               }
@@ -60,7 +65,7 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Assistant Test\",\n  \"description\": \"Un assistant de test pour Postman\"\n}"
+              "raw": "{\n  \"name\": \"Assistant Echo\",\n  \"type\": \"echo\",\n  \"description\": \"Un assistant qui fait écho des messages\"\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/agents",
@@ -148,7 +153,17 @@
                   "",
                   "pm.test(\"Name has been updated\", function () {",
                   "    var jsonData = pm.response.json();",
-                  "    pm.expect(jsonData.name).to.eql('Assistant Test Modifié');",
+                  "    pm.expect(jsonData.name).to.eql('Assistant Prédéfini');",
+                  "});",
+                  "",
+                  "pm.test(\"Type has been updated\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.type).to.eql('predefined');",
+                  "});",
+                  "",
+                  "pm.test(\"Config has been set\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.config).to.have.property('predefinedResponse');",
                   "});"
                 ]
               }
@@ -164,12 +179,94 @@
             ],
             "body": {
               "mode": "raw",
-              "raw": "{\n  \"name\": \"Assistant Test Modifié\",\n  \"description\": \"Description mise à jour\"\n}"
+              "raw": "{\n  \"name\": \"Assistant Prédéfini\",\n  \"type\": \"predefined\",\n  \"description\": \"Assistant avec réponse prédéfinie\",\n  \"config\": {\n    \"predefinedResponse\": \"Bonjour ! Je suis un assistant avec une réponse prédéfinie.\"\n  }\n}"
             },
             "url": {
               "raw": "{{baseUrl}}/agents/{{agentId}}",
               "host": ["{{baseUrl}}"],
               "path": ["agents", "{{agentId}}"]
+            }
+          }
+        },
+        {
+          "name": "Créer un agent avec mots-clés",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has correct type\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.type).to.eql('keyword_based');",
+                  "});",
+                  "",
+                  "pm.test(\"Response has keyword rules\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.config).to.have.property('keywordRules');",
+                  "    pm.expect(jsonData.config.keywordRules).to.be.an('array');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Assistant Mots-clés\",\n  \"type\": \"keyword_based\",\n  \"description\": \"Assistant basé sur des mots-clés\",\n  \"config\": {\n    \"keywordRules\": [\n      {\n        \"keywords\": [\"bonjour\", \"salut\", \"hello\"],\n        \"response\": \"Bonjour ! Comment puis-je vous aider ?\",\n        \"priority\": 10\n      },\n      {\n        \"keywords\": [\"aide\", \"help\", \"assistance\"],\n        \"response\": \"Je suis là pour vous aider ! Posez-moi vos questions.\",\n        \"priority\": 5\n      },\n      {\n        \"keywords\": [\"au revoir\", \"bye\", \"goodbye\"],\n        \"response\": \"Au revoir ! À bientôt !\",\n        \"priority\": 10\n      }\n    ]\n  }\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/agents",
+              "host": ["{{baseUrl}}"],
+              "path": ["agents"]
+            }
+          }
+        },
+        {
+          "name": "Créer un agent OpenAI",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "pm.test(\"Status code is 201\", function () {",
+                  "    pm.response.to.have.status(201);",
+                  "});",
+                  "",
+                  "pm.test(\"Response has correct type\", function () {",
+                  "    var jsonData = pm.response.json();",
+                  "    pm.expect(jsonData.type).to.eql('openai');",
+                  "});"
+                ]
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"name\": \"Assistant OpenAI\",\n  \"type\": \"openai\",\n  \"description\": \"Assistant utilisant l'API OpenAI\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/agents",
+              "host": ["{{baseUrl}}"],
+              "path": ["agents"]
             }
           }
         }

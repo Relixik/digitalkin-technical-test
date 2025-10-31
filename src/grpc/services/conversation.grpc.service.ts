@@ -1,6 +1,4 @@
-import ConversationService from "../../services/conversation.service";
-import MessageService from "../../services/message.service";
-import OpenAIService from "../../services/openai.service";
+import AgentService from "../../services/agent.service";
 import logger from "../../config/logger";
 import { sendUnaryData, ServerUnaryCall } from "@grpc/grpc-js";
 import {
@@ -30,26 +28,12 @@ export const conversationGrpcService = {
                 });
             }
 
-            const conversation = await ConversationService.create(validation.value.agentId);
-
-            const [message] = await Promise.all([
-                OpenAIService.sendMessage(validation.value.message).then((response) => {
-                    return MessageService.create({
-                        conversationId: conversation.id,
-                        sender: "agent",
-                        content: response.message,
-                    });
-                }),
-                MessageService.create({
-                    conversationId: conversation.id,
-                    sender: "user",
-                    content: validation.value.message,
-                }),
-            ]);
-
             callback(null, {
-                conversationId: String(conversation.id.id),
-                message: message.content,
+                ...(await AgentService.processMessage(
+                    validation.value.agentId,
+                    null,
+                    validation.value.message
+                )),
                 error: "",
             });
         } catch (error) {
@@ -80,37 +64,13 @@ export const conversationGrpcService = {
                     error: validation.error.message,
                 });
             }
-            // Check if conversation exists
-            const conversation = await ConversationService.getById(conversationId);
-            if (!conversation) {
-                callback(null, {
-                    conversationId,
-                    message: "",
-                    error: "Conversation not found",
-                });
-                return;
-            }
-            // Retrieve chat history and pass it to OpenAI API
-            const messages = await MessageService.getByConversationId(conversationId);
-
-            const [message] = await Promise.all([
-                OpenAIService.sendMessage(validation.value.message, messages).then((response) => {
-                    return MessageService.create({
-                        conversationId: conversation.id,
-                        sender: "agent",
-                        content: response.message,
-                    });
-                }),
-                MessageService.create({
-                    conversationId: conversation.id,
-                    sender: "user",
-                    content: validation.value.message,
-                }),
-            ]);
 
             callback(null, {
-                conversationId,
-                message: message.content,
+                ...(await AgentService.processMessage(
+                    validation.value.agentId,
+                    conversationId,
+                    validation.value.message
+                )),
                 error: "",
             });
         } catch (error) {

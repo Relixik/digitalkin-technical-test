@@ -1,8 +1,12 @@
 import { RecordId } from "surrealdb";
 import databaseService from "./database.service";
+import OpenAIService from "./openai.service";
+import ConversationService from "./conversation.service";
+import MessageService from "./message.service";
 import logger from "../config/logger";
-import { Agent } from "../models/agent.model";
+import { Agent, AgentType } from "../models/agent.model";
 import { Conversation } from "../models/conversation.model";
+import { Message } from "../models/message.model";
 
 class AgentService {
     private get db() {
@@ -28,7 +32,9 @@ class AgentService {
         try {
             const agent = {
                 name: agentData.name,
+                type: agentData.type,
                 description: agentData.description,
+                config: agentData.config,
                 createdAt: new Date(),
                 updatedAt: new Date(),
             };
@@ -102,6 +108,154 @@ class AgentService {
             });
             throw error;
         }
+    }
+
+    /**
+     * Traite un message selon le type d'agent et retourne une réponse
+     */
+    async processMessage(
+        agentId: string,
+        conversationId: string | null,
+        userMessage: string
+    ): Promise<{
+        conversationId: string;
+        message: string;
+    }> {
+        try {
+            const agent = await this.getById(agentId);
+            if (!agent) {
+                throw new Error(`Agent with ID ${agentId} not found`);
+            }
+
+            let conv = null;
+            if (conversationId === null) {
+                conv = await ConversationService.create(agentId);
+            } else {
+                conv = await ConversationService.getById(conversationId);
+            }
+            if (!conv) {
+                throw new Error(`Conversation with ID ${conversationId} not found`);
+            }
+
+            switch (agent.type) {
+                case AgentType.ECHO:
+                    await MessageService.create({
+                        conversationId: conv.id,
+                        sender: "user",
+                        content: userMessage,
+                    });
+                    await MessageService.create({
+                        conversationId: conv.id,
+                        sender: "agent",
+                        content: userMessage,
+                    });
+                    return {
+                        conversationId: conv.id.id.toString(),
+                        message: userMessage,
+                    };
+
+                case AgentType.PREDEFINED:
+                    await MessageService.create({
+                        conversationId: conv.id,
+                        sender: "user",
+                        content: userMessage,
+                    });
+                    await MessageService.create({
+                        conversationId: conv.id,
+                        sender: "agent",
+                        content:
+                            agent.config?.predefinedResponse || "Réponse prédéfinie non configurée",
+                    });
+                    return {
+                        conversationId: conv.id.id.toString(),
+                        message:
+                            agent.config?.predefinedResponse || "Réponse prédéfinie non configurée",
+                    };
+
+                case AgentType.KEYWORD_BASED:
+                    const response = this.processKeywordBasedMessage(agent, userMessage);
+                    await MessageService.create({
+                        conversationId: conv.id,
+                        sender: "user",
+                        content: userMessage,
+                    });
+                    await MessageService.create({
+                        conversationId: conv.id,
+                        sender: "agent",
+                        content: response,
+                    });
+                    return {
+                        conversationId: conv.id.id.toString(),
+                        message: response,
+                    };
+
+                case AgentType.OPENAI:
+                    let messages: Message[] = [];
+                    if (conversationId !== null) {
+                        messages = await MessageService.getByConversationId(conversationId);
+                    }
+
+                    const [message] = await Promise.all([
+                        OpenAIService.sendMessage(userMessage, messages).then((response) => {
+                            return MessageService.create({
+                                conversationId: conv.id,
+                                sender: "agent",
+                                content: response.message,
+                            });
+                        }),
+                        MessageService.create({
+                            conversationId: conv.id,
+                            sender: "user",
+                            content: userMessage,
+                        }),
+                    ]);
+
+                    return {
+                        conversationId: conv.id.id.toString(),
+                        message: message.content,
+                    }
+
+                default:
+                    return {
+                        conversationId: conv.id.id.toString(),
+                        message: "Type d'agent non reconnu",
+                    }
+            }
+        } catch (error) {
+            logger.error(
+                "AGENTS_SERVICE",
+                `Error processing message for agent ${agentId}: ${error}`,
+                {
+                    message: error instanceof Error ? error.message : error,
+                    stack: error instanceof Error ? error.stack : undefined,
+                }
+            );
+            throw error;
+        }
+    }
+
+    /**
+     * Traite un message avec des règles basées sur des mots-clés
+     */
+    private processKeywordBasedMessage(agent: Agent, userMessage: string): string {
+        const rules = agent.config?.keywordRules || [];
+        const messageWords = userMessage.toLowerCase().split(/\s+/);
+
+        // Trouve les règles qui correspondent
+        const matchingRules = rules.filter((rule) =>
+            rule.keywords.some((keyword) =>
+                messageWords.some((word) => word.includes(keyword.toLowerCase()))
+            )
+        );
+
+        if (matchingRules.length === 0) {
+            return "Aucune règle correspondante trouvée";
+        }
+
+        // Trie par priorité (plus haute en premier) puis prend la première
+        const selectedRule = matchingRules.sort((a, b) => (b.priority || 0) - (a.priority || 0))[0];
+
+        return selectedRule.response;
     }
 }
 
