@@ -14,6 +14,11 @@ export const env = {
     DB_DATABASE: process.env.DB_DATABASE || "main",
     DB_USER: process.env.DB_USER || "",
     DB_PASSWORD: process.env.DB_PASSWORD || "",
+
+    // OPENAI
+    OPENAI_MODEL: process.env.OPENAI_MODEL || "gpt-5",
+    OPENAI_API_KEY: process.env.JWT_SECRET || "your-secret-key", // automatically read from environment by OpenAI library
+
 } as const;
 
 export default env;
